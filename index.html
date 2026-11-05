@@ -1,0 +1,147 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Planning"><meta name="apple-mobile-web-app-status-bar-style" content="default"><title>Mon Planning CFAI</title><style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;overscroll-behavior-y:contain;padding-bottom:env(safe-area-inset-bottom);background:#f5f7fa;color:#253247;font-family:Arial,sans-serif}.top{height:calc(70px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:white;border-bottom:1px solid #e3e8ef;display:flex;align-items:center;justify-content:space-between;padding:0 25px}.brand{display:flex;align-items:center;gap:12px;font-weight:bold}.logo{width:40px;height:40px;border-radius:12px;display:block}.sub{display:block;font-size:11px;color:#8792a3;font-weight:normal;margin-top:4px}main{padding:26px;max-width:1800px;margin:auto}.head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:20px}.eyebrow{font-size:10px;letter-spacing:1.5px;color:#11a8b4;font-weight:bold}h1{font-size:26px;margin:8px 0;color:#17243a}#period{font-size:13px;color:#5d6b80;font-weight:bold}.controls{display:flex;gap:7px;flex-wrap:wrap}button,.upload{border:1px solid #dce3eb;background:white;color:#34445b;border-radius:8px;padding:9px 12px;cursor:pointer;font-size:12px}.sel{background:#e8f9fa;border-color:#a7e5e8;color:#078c98;font-weight:bold}.bar{display:flex;align-items:center;gap:20px;font-size:11px;color:#59677b;margin-bottom:10px}.bar i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#20c4ce;margin-right:6px}.upload{margin-left:auto;background:#e9f9fa;color:#078d98;font-weight:bold}.upload input{display:none}.wrap{overflow:auto;background:white;border:1px solid #dfe4eb;border-radius:12px}.cal{min-width:900px;display:flex;min-height:600px}.times{width:62px;flex:0 0 62px;border-right:1px solid #d9dee6}.timehead,.dayhead{height:52px;border-bottom:2px solid #f5b74b}.tick{height:86px;border-bottom:1px solid #e5e8ed;padding:9px 7px;text-align:right;font-size:12px;color:#5d6879}.day{position:relative;flex:1;min-width:160px;border-right:1px solid #dfe4eb;background:repeating-linear-gradient(to bottom,#fff 0,#fff 85px,#e8ebef 85px,#e8ebef 86px)}.dayhead{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;white-space:nowrap;background:#fff}.today{background:#fff8e9}.slots{position:relative;height:calc(var(--hours)*86px)}.event{position:absolute;left:5px;right:5px;border:1px solid #d3dbe4;border-left:4px solid #59dce0;border-radius:3px;background:#fff;padding:7px 9px;overflow:hidden;min-height:48px;box-shadow:0 1px 3px #17243a0c}.event:nth-child(4n+2){border-left-color:#f3a7a7}.event:nth-child(4n+3){border-left-color:#a9c8f7}.event:nth-child(4n+4){border-left-color:#b5d99a}.et{font-size:12px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}.line{font-size:12px;line-height:1.45;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.empty{padding:55px 20px;text-align:center;color:#8793a4;font-size:13px;width:100%}.help{margin-top:14px;padding:13px 15px;background:white;border:1px solid #e4e9ef;border-radius:9px;font-size:12px;color:#68768a;line-height:1.5}footer{display:flex;justify-content:space-between;color:#9aa4b2;font-size:10px;padding:14px 2px}@media(max-width:760px){.top{padding:0 12px}.sub{display:none}main{padding:18px 12px}.head{align-items:flex-start;flex-direction:column}h1{font-size:23px}.cal{min-width:850px}footer{flex-direction:column;gap:8px}}
+</style></head><body><header class="top"><div class="brand"><img class="logo" src="icon-192.png" alt="" width="40" height="40"><div>Mon Planning CFAI<span class="sub">Ton emploi du temps</span></div></div><span id="status" style="font-size:12px;color:#78869a">Aucun planning importé</span></header><main><section class="head"><div><div class="eyebrow">ESPACE APPRENANT</div><h1>Mon emploi du temps</h1><div id="period">Importe ton fichier iCalendar NetYParéo.</div></div><div class="controls"><button id="prev">‹</button><button id="today">Aujourd'hui</button><button id="next">›</button><button id="week" class="sel">Semaine</button><button id="day">Jour</button></div></section><div class="bar"><span><i></i>Cours</span><span id="count">0 cours</span><label class="upload">Importer / actualiser le planning<input id="file" type="file"></label></div><div class="wrap"><div id="cal" class="cal"><div class="empty">Commence par importer le fichier <b>.ics</b> téléchargé depuis NetYParéo.</div></div></div><div class="help"><b>Actualisation :</b> télécharge à nouveau le fichier iCalendar depuis NetYParéo puis importe-le ici. L'application conserve le planning dans ce navigateur. Cette version sans serveur ne peut pas garantir une récupération automatique toutes les heures.</div><footer><span>Mon Planning CFAI</span><span id="stamp">Dernière importation : —</span></footer></main>
+<script>
+const $=x=>document.getElementById(x),H=86;
+let data=[],anchor=new Date(),mode="week";
+const pad=n=>String(n).padStart(2,"0");
+const key=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const fmt=d=>new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long"}).format(d);
+const tm=d=>pad(d.getHours())+":"+pad(d.getMinutes());
+
+function weekNum(d){
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const n=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-n);
+  const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  return Math.ceil(((t-y0)/86400000+1)/7);
+}
+
+function un(s){
+  return (s||"").replace(/\\([nN,;\\])/g,(m,c)=>c.toLowerCase()==="n"?"\n":c);
+}
+
+function dt(v){
+  const m=(v||"").trim().match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/);
+  if(!m)return null;
+  if(!m[4])return new Date(+m[1],+m[2]-1,+m[3]);
+  const sec=+(m[6]||0);
+  return m[7]
+    ? new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],sec))
+    : new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],sec);
+}
+
+function parse(s){
+  s=s.replace(/^\uFEFF/,"").replace(/\r?\n[ \t]/g,"");
+  return s.split("BEGIN:VEVENT").slice(1).map(b=>{
+    const o={};
+    for(const l of b.split("END:VEVENT")[0].split(/\r?\n/)){
+      const i=l.indexOf(":");
+      if(i<0)continue;
+      const k=l.slice(0,i).split(";")[0].toUpperCase();
+      if(["DTSTART","DTEND","SUMMARY","DESCRIPTION","LOCATION"].includes(k))o[k]=l.slice(i+1);
+    }
+    const a=dt(o.DTSTART);
+    let z=dt(o.DTEND);
+    if(a&&!z)z=new Date(a.getTime()+3600000);
+    return a&&z?{a,z,title:un(o.SUMMARY)||"Cours",desc:un(o.DESCRIPTION),loc:un(o.LOCATION)}:null;
+  }).filter(Boolean).sort((a,b)=>a.a-b.a);
+}
+
+function esc(s){
+  return String(s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function days(){
+  if(mode==="day")return [new Date(anchor)];
+  const d=new Date(anchor);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate()-((d.getDay()+6)%7));
+  let n=5;
+  const sat=new Date(d);sat.setDate(d.getDate()+5);
+  const sun=new Date(d);sun.setDate(d.getDate()+6);
+  if(data.some(e=>key(e.a)===key(sun)))n=7;
+  else if(data.some(e=>key(e.a)===key(sat)))n=6;
+  return Array.from({length:n},(_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return x});
+}
+
+function render(){
+  const ds=days();
+  const shown=data.filter(e=>ds.some(d=>key(d)===key(e.a)));
+  const wk="Semaine "+weekNum(ds[0])+" · ";
+  $("period").textContent=mode==="day"?wk+fmt(ds[0]):wk+fmt(ds[0])+" – "+fmt(ds[ds.length-1]);
+  $("count").textContent=shown.length+" cours";
+
+  let START=7,END=19;
+  for(const e of shown){
+    START=Math.min(START,e.a.getHours());
+    END=Math.max(END,Math.ceil(e.z.getHours()+e.z.getMinutes()/60));
+  }
+  END=Math.min(Math.max(END,START+1),24);
+
+  let h='<div class="times"><div class="timehead"></div>';
+  for(let t=START;t<END;t++)h+='<div class="tick">'+pad(t)+':00</div>';
+  h+='</div>';
+
+  for(const d of ds){
+    const list=shown.filter(e=>key(e.a)===key(d));
+    h+='<div class="day"><div class="dayhead '+(key(d)===key(new Date())?'today':'')+'">'+fmt(d)+'</div><div class="slots" style="--hours:'+(END-START)+'">';
+    if(!list.length)h+='<div class="empty">Aucun cours prévu</div>';
+    for(const e of list){
+      const top=((e.a.getHours()+e.a.getMinutes()/60)-START)*H;
+      const ht=Math.max(48,(e.z-e.a)/3600000*H-4);
+      const desc=e.desc.split(/\n/).map(x=>x.trim()).filter(Boolean).slice(0,5).map(x=>'<div class="line">'+esc(x)+'</div>').join("");
+      h+='<article class="event" style="top:'+Math.max(0,top)+'px;height:'+ht+'px"><div class="et">'+esc(e.title)+'</div>'+desc+(e.loc?'<div class="line">VE - '+esc(e.loc)+'</div>':'')+'<div class="line">'+tm(e.a)+' – '+tm(e.z)+'</div></article>';
+    }
+    h+='</div></div>';
+  }
+  $("cal").innerHTML=h;
+}
+
+function gotoRelevantWeek(){
+  if(!data.length)return;
+  const ds=days();
+  if(data.some(e=>ds.some(d=>key(d)===key(e.a))))return;
+  const now=new Date();now.setHours(0,0,0,0);
+  const next=data.find(e=>e.a>=now);
+  anchor=new Date((next||data[data.length-1]).a);
+}
+
+$("file").onchange=ev=>{
+  const f=ev.target.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const x=parse(String(r.result));
+      if(!x.length)throw Error("Aucun cours lisible dans ce fichier.");
+      data=x;
+      try{localStorage.setItem("cfaiPlan",JSON.stringify(x.map(e=>({...e,a:e.a.toISOString(),z:e.z.toISOString()}))))}catch(_){}
+      const now=new Date();
+      try{localStorage.setItem("cfaiStamp",now.toLocaleString("fr-FR"))}catch(_){}
+      $("stamp").textContent="Dernière importation : "+now.toLocaleString("fr-FR");
+      $("status").textContent="Planning importé";
+      gotoRelevantWeek();
+      render();
+    }catch(err){alert("Import impossible : "+err.message)}
+    ev.target.value="";
+  };
+  r.onerror=()=>alert("Import impossible : lecture du fichier échouée.");
+  r.readAsText(f,"UTF-8");
+};
+
+$("prev").onclick=()=>{anchor.setDate(anchor.getDate()-(mode==="day"?1:7));render()};
+$("next").onclick=()=>{anchor.setDate(anchor.getDate()+(mode==="day"?1:7));render()};
+$("today").onclick=()=>{anchor=new Date();render()};
+$("week").onclick=()=>{mode="week";$("week").classList.add("sel");$("day").classList.remove("sel");render()};
+$("day").onclick=()=>{mode="day";$("day").classList.add("sel");$("week").classList.remove("sel");render()};
+
+try{
+  const x=JSON.parse(localStorage.getItem("cfaiPlan")||"[]");
+  data=x.map(e=>({...e,a:new Date(e.a),z:new Date(e.z)}));
+  const st=localStorage.getItem("cfaiStamp");
+  if(st)$("stamp").textContent="Dernière importation : "+st;
+  if(data.length){$("status").textContent="Planning enregistré";gotoRelevantWeek();render()}
+}catch(e){}
+if("serviceWorker"in navigator&&location.protocol.startsWith("http")){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script></body></html>
